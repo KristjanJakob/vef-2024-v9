@@ -3,7 +3,7 @@
  * verður gefnar staðsetningar.
  */
 
-import { el } from './lib/elements.js';
+import { el, empty } from './lib/elements.js';
 import { weatherSearch } from './lib/weather.js';
 
 /**
@@ -50,7 +50,16 @@ const locations = [
  * @param {Element} element
  */
 function renderIntoResultsContent(element) {
-  // TODO útfæra
+  const outputElement = document.querySelector('.output');
+
+  if (!outputElement) {
+    console.warn('Fann ekki .output')
+    return;
+  }
+
+  empty(outputElement);
+
+  outputElement.appendChild(element);
 }
 
 /**
@@ -59,7 +68,38 @@ function renderIntoResultsContent(element) {
  * @param {Array<import('./lib/weather.js').Forecast>} results
  */
 function renderResults(location, results) {
-  // TODO útfæra
+  const header = el(
+    'tr',
+    {},
+    el('th', {}, 'Tími'),
+    el('th', {}, 'Hiti'),
+    el('th', {}, 'Úrkoma')
+  );
+
+  console.log(results);
+
+  const body = el(
+    'tr',
+    {},
+    el('td', {}, 'Tími'),
+    el('td', {}, 'Hiti'),
+    el('td', {}, 'Úrkoma')
+  );
+
+  const resultsTable = el('table', { class: 'forecast' }, header, body);
+
+  renderIntoResultsContent(
+    el(
+      'section',
+      {},
+      el(
+        'h2',
+        {},
+        `Leitarniðurstöður fyrir: ${location.title}`
+      ),
+      resultsTable
+    )
+  );
 }
 
 /**
@@ -67,15 +107,21 @@ function renderResults(location, results) {
  * @param {Error} error
  */
 function renderError(error) {
-  // TODO útfæra
+  console.log(error);
+  const message = error.message;
+
+  renderIntoResultsContent(
+    el('p', {}, `Villa! ${message}`)
+  );
 }
 
 /**
  * Birta biðstöðu í viðmóti.
  */
 function renderLoading() {
-  console.log('render loading');
-  // TODO útfæra
+  renderIntoResultsContent(
+    el('p', {}, 'Leita...')
+  );
 }
 
 /**
@@ -89,9 +135,15 @@ async function onSearch(location) {
   // Birta loading state
   renderLoading();
 
-  const results = await weatherSearch(location.lat, location.lng);
+  let results
+  try {
+    results = await weatherSearch(location.lat, location.lng);
+  } catch (error) {
+    renderError(error);
+    return;
+  }
 
-  console.log(results);
+  renderResults(location, results ?? [])
   // TODO útfæra
   // Hér ætti að birta og taka tillit til mismunandi staða meðan leitað er.
 }
@@ -177,6 +229,9 @@ function render(container, locations, onSearch, onSearchMyLocation) {
   parentElement.appendChild(locationsElement);
 
   // TODO útfæra niðurstöðu element
+  const outputElement = document.createElement('div');
+  outputElement.classList.add('output');
+  parentElement.appendChild(outputElement);
 
   container.appendChild(parentElement);
 }
