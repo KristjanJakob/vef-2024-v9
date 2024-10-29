@@ -72,31 +72,27 @@ function renderResults(location, results) {
     'tr',
     {},
     el('th', {}, 'Tími'),
-    el('th', {}, 'Hiti'),
-    el('th', {}, 'Úrkoma')
+    el('th', {}, 'Hiti (°C)'),
+    el('th', {}, 'Úrkoma (mm)')
   );
 
-  console.log(results);
-
-  const body = el(
-    'tr',
-    {},
-    el('td', {}, 'Tími'),
-    el('td', {}, 'Hiti'),
-    el('td', {}, 'Úrkoma')
+  const rows = results.map((forecast) =>
+    el(
+      'tr',
+      {},
+      el('td', {}, forecast.time.slice(11, 16)),
+      el('td', {}, forecast.temperature.toFixed(1)),
+      el('td', {}, forecast.precipitation.toFixed(1))
+    )
   );
 
-  const resultsTable = el('table', { class: 'forecast' }, header, body);
+  const resultsTable = el('table', { class: 'forecast' }, header, ...rows);
 
   renderIntoResultsContent(
     el(
       'section',
       {},
-      el(
-        'h2',
-        {},
-        `Leitarniðurstöður fyrir: ${location.title}`
-      ),
+      el('h2', {}, `Leitarniðurstöður fyrir: ${location.title}`),
       resultsTable
     )
   );
@@ -130,22 +126,13 @@ function renderLoading() {
  * @param {SearchLocation} location Staðsetning sem á að leita eftir.
  */
 async function onSearch(location) {
-  console.log('onSearch', location);
-
-  // Birta loading state
   renderLoading();
-
-  let results
   try {
-    results = await weatherSearch(location.lat, location.lng);
+    const results = await weatherSearch(location.lat, location.lng);
+    renderResults(location, results);
   } catch (error) {
     renderError(error);
-    return;
   }
-
-  renderResults(location, results ?? [])
-  // TODO útfæra
-  // Hér ætti að birta og taka tillit til mismunandi staða meðan leitað er.
 }
 
 /**
@@ -153,7 +140,24 @@ async function onSearch(location) {
  * Biður notanda um leyfi gegnum vafra.
  */
 async function onSearchMyLocation() {
-  // TODO útfæra
+  if (!navigator.geolocation) {
+    renderError(new Error('Vafrinn styður ekki staðsetningu'));
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const { latitude, longitude } = position.coords;
+      renderLoading();
+      try {
+        const results = await weatherSearch(latitude, longitude);
+        renderResults({ title: 'Núverandi staðsetning', lat: latitude, lng: longitude }, results);
+      } catch (error) {
+        renderError(error);
+      }
+    },
+    (error) => renderError(new Error('Staðsetning ekki leyfð eða ekki í boði'))
+  );
 }
 
 /**
@@ -201,7 +205,7 @@ function render(container, locations, onSearch, onSearchMyLocation) {
   // Búum til <header> með beinum DOM aðgerðum
   const headerElement = document.createElement('header');
   const heading = document.createElement('h1');
-  heading.appendChild(document.createTextNode('<fyrirsögn>'));
+  heading.appendChild(document.createTextNode('Veðurspá'));
   headerElement.appendChild(heading);
   parentElement.appendChild(headerElement);
 
@@ -228,7 +232,6 @@ function render(container, locations, onSearch, onSearchMyLocation) {
 
   parentElement.appendChild(locationsElement);
 
-  // TODO útfæra niðurstöðu element
   const outputElement = document.createElement('div');
   outputElement.classList.add('output');
   parentElement.appendChild(outputElement);
