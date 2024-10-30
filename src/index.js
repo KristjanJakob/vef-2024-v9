@@ -92,7 +92,9 @@ function renderResults(location, results) {
     el(
       'section',
       {},
-      el('h2', {}, `Leitarniðurstöður fyrir: ${location.title}`),
+      el('h2', {}, `Niðurstöður`),
+      el('h2', {}, `${location.title}`),
+      el('p', {}, `Spá fyrir daginn á breiddargráðu ${location.lat} og lengdargráðu ${location.lng}`),
       resultsTable
     )
   );
@@ -205,9 +207,18 @@ function render(container, locations, onSearch, onSearchMyLocation) {
   // Búum til <header> með beinum DOM aðgerðum
   const headerElement = document.createElement('header');
   const heading = document.createElement('h1');
+  const heading2 = document.createElement('h2');
+  const paragraph = document.createElement('p');
   heading.appendChild(document.createTextNode('Veðurspá'));
+  paragraph.appendChild(document.createTextNode('Veldu stað til að sjá hita- og úrkomuspá.'));
+  heading2.appendChild(document.createTextNode('Staðsetningar'));
+
   headerElement.appendChild(heading);
+  headerElement.appendChild(paragraph);
+  headerElement.appendChild(heading2);
+
   parentElement.appendChild(headerElement);
+
 
   // TODO útfæra inngangstexta
   // Búa til <div class="loctions">

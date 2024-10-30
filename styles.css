@@ -88,3 +88,23 @@ main {
 .forecast tbody tr:nth-child(2n + 1) {
   background-color: var(--color-background-zebra);
 }
+
+header h1 {
+  margin-bottom: 10px;
+}
+
+header p {
+  margin-bottom: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table tr:nth-child(even) {
+  background-color: #e0e0e0; 
+}
+
+
+
